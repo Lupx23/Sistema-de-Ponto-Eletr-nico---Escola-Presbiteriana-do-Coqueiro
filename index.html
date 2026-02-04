@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ponto Eletrônico – EPC</title>
+
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0}
+header{background:#1e293b;color:#fff;padding:15px;text-align:center}
+main{max-width:900px;margin:auto;padding:20px}
+.card{background:#fff;padding:20px;border-radius:8px;margin-bottom:15px;box-shadow:0 0 5px #ccc}
+button{padding:10px 15px;margin:5px}
+.hidden{display:none}
+pre{background:#111;color:#0f0;padding:15px;overflow:auto}
+footer{text-align:center;font-size:12px;color:#555;margin:30px}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Sistema de Ponto Eletrônico – EPC</h2>
+</header>
+
+<main>
+
+<!-- LOGIN COLABORADOR -->
+<div id="loginColab" class="card">
+<h3>Registro de Ponto</h3>
+<input id="nomeColab" placeholder="Nome do colaborador">
+<br><br>
+<button onclick="registrar('ENTRADA')">Entrada</button>
+<button onclick="registrar('SAÍDA')">Saída</button>
+</div>
+
+<!-- AREA TI -->
+<div class="card">
+<h3>Área Profissional T.I</h3>
+<button onclick="acessarTI()">Acessar</button>
+</div>
+
+<!-- PAINEL TI -->
+<div id="painelTI" class="hidden card">
+<h3>Painel Administrativo – T.I</h3>
+<button onclick="listar()">Listar Registros</button>
+<button onclick="exportar()">Exportar Backup</button>
+<button onclick="imprimir()">Imprimir</button>
+<button onclick="fecharTI()">Fechar</button>
+<pre id="saida"></pre>
+</div>
+
+</main>
+
+<footer>
+SISTEMA DESENVOLVIDO POR: Lucas Pinheiro - Seção de Serviços Técnicos (SST-EPC)
+</footer>
+
+<script>
+/* ===== CONFIGURAÇÕES ===== */
+const SENHA_TI = "@rp1234epc";
+
+/* ===== STORAGE ===== */
+let registros = JSON.parse(localStorage.getItem("registrosEP")) || [];
+
+/* ===== REGISTRAR PONTO ===== */
+function registrar(tipo){
+  const nome = nomeColab.value.trim();
+  if(!nome) return alert("Informe o nome");
+
+  const hoje = new Date().toLocaleDateString();
+  const hora = new Date().toLocaleTimeString();
+
+  // Impede repetição
+  if(registros.find(r => r.nome===nome && r.tipo===tipo && r.data===hoje)){
+    alert("Registro já realizado hoje.");
+    return;
+  }
+
+  registros.push({ nome, tipo, data: hoje, hora });
+  localStorage.setItem("registrosEP", JSON.stringify(registros));
+
+  alert(tipo + " registrada com sucesso.");
+  nomeColab.value="";
+}
+
+/* ===== ACESSO TI ===== */
+function acessarTI(){
+  const senha = prompt("Senha do T.I:");
+  if(senha === SENHA_TI){
+    painelTI.classList.remove("hidden");
+  } else {
+    alert("Acesso negado.");
+  }
+}
+
+function fecharTI(){
+  painelTI.classList.add("hidden");
+  saida.textContent="";
+}
+
+/* ===== FUNÇÕES ADMIN ===== */
+function listar(){
+  saida.textContent = JSON.stringify(registros, null, 2);
+}
+
+function exportar(){
+  const blob = new Blob(
+    [JSON.stringify(registros, null, 2)],
+    {type:"application/json"}
+  );
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "backup_ponto_epc.json";
+  a.click();
+}
+
+function imprimir(){
+  window.print();
+}
+</script>
+
+</body>
+</html>
